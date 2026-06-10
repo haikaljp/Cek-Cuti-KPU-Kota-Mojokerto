@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Cuti Pegawai</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 22px;
+        }
+
+        .instruction {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* --- POPUP / MODAL STYLING --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            padding: 25px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            width: auto;
+        }
+        
+        .close-btn:hover { color: #333; }
+
+        /* Rata Kiri di atas Tabel */
+        .header-info {
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        .header-info h3 {
+            font-size: 16px;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .header-info p {
+            font-size: 15px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        /* Garis Pemisah Antara Nama & NIP dengan Tabel */
+        .divider {
+            border: none;
+            border-top: 2px solid #333333;
+            margin: 8px 0 15px 0;
+        }
+
+        /* SUSUNAN TABEL UTAMA */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .main-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        /* Kolom Kiri: Masa Kerja */
+        .col-kiri {
+            width: 45%;
+            text-align: left;
+            background-color: #fafafa;
+        }
+
+        .col-kiri .title {
+            font-weight: bold;
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .col-kiri .value {
+            font-weight: bold;
+            font-size: 15px;
+            color: var(--primary-color);
+        }
+
+        /* Kolom Kanan: Berada di dalam tabel */
+        .col-kanan {
+            width: 55%;
+            text-align: left;
+            background-color: #ffffff;
+            font-size: 14px;
+        }
+        
+        .col-kanan div { margin-bottom: 4px; }
+        .col-kanan div:last-child { margin-bottom: 0; }
+
+        /* Baris Kedua: Merge Kolom Kanan & Kiri */
+        .row-merged {
+            text-align: center;
+            background-color: #f1f3f5;
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--primary-color);
+            padding: 10px !important;
+        }
+
+        /* TABEL DATA CUTI (SISA) */
+        .cuti-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .cuti-table th, .cuti-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .cuti-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .error-msg { color: #e74c3c; margin-top: 10px; font-size: 14px; display: none; }
+        .loading { color: #7f8c8d; margin-top: 10px; font-size: 14px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Cek Data Cuti Pegawai</h2>
+        <p class="instruction">Masukkan NIP Anda untuk menampilkan data pegawai dan sisa cuti tahunan.</p>
+        
+        <input type="text" id="input-nip" placeholder="Masukkan NIP Anda...">
+        <button onclick="cariDataCuti()">Cari Data</button>
+        
+        <div id="loading-status" class="loading">Memuat data dari Spreadsheet...</div>
+        <div id="error-status" class="error-msg">NIP tidak ditemukan atau terjadi kesalahan jaringan.</div>
+    </div>
+
+    <div id="modal-popup" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="tutupModal()">&times;</button>
+            
+            <div class="header-info">
+                <h3 id="pop-nama">NAMA: .....</h3>
+                <p id="pop-nip">NIP: .....</p>
+            </div>
+            
+            <hr class="divider">
+            
+            <table class="main-table">
+                <tr>
+                    <td class="col-kiri">
+                        <div class="title">Masa Kerja</div>
+                        <div class="value" id="pop-masa-kerja">... tahun ... bulan</div>
+                    </td>
+                    <td class="col-kanan">
+                        <div><strong>Nama:</strong> <span id="tbl-nama">.....</span></div>
+                        <div><strong>NIP:</strong> <span id="tbl-nip">.....</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="row-merged" id="pop-tahun-sekarang">
+                        Cuti Tahunan (Tahun Sekarang)
+                    </td>
+                </tr>
+            </table>
+
+            <table class="cuti-table">
+                <thead>
+                    <tr>
+                        <th>Tahun</th>
+                        <th>Sisa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="lbl-n2">N-2</td>
+                        <td id="val-n2">...</td>
+                    </tr>
+                    <tr>
+                        <td id="lbl-n1">N-1</td>
+                        <td id="val-n1">...</td>
+                    </tr>
+                    <tr>
+                        <td id="lbl-n">N</td>
+                        <td id="val-n">...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // TAMBAHKAN ID SPREADSHEET ANDA DI SINI
+        // =========================================================================
+        const SPREADSHEET_ID = '12zvLyW3MtFzvVId-Yd__-P8oBAqJiFp0w-N6wpkTQIc'; 
+        const SHEET_PEGAWAI = 'Data_Pegawai';
+        const SHEET_CUTI = 'Data_Cuti';
+
+        // Deteksi Tahun N (Sekarang), N-1, N-2 Otomatis
+        const tahunSekarang = new Date().getFullYear();
+        const tahunN = tahunSekarang;
+        const tahunN1 = tahunSekarang - 1;
+        const tahunN2 = tahunSekarang - 2;
+
+        // Set teks header tabel dinamis mengikuti tahun berjalan saat ini
+        document.getElementById('pop-tahun-sekarang').innerText = `Cuti Tahunan (Tahun ${tahunN})`;
+        document.getElementById('lbl-n').innerText = `N (${tahunN})`;
+        document.getElementById('lbl-n1').innerText = `N-1 (${tahunN1})`;
+        document.getElementById('lbl-n2').innerText = `N-2 (${tahunN2})`;
+
+        // Fungsi Hitung Masa Kerja Otomatis dari TMT
+        function hitungMasaKerja(tmtString) {
+            if (!tmtString) return "0 tahun 0 bulan";
+            
+            let tmt = new Date(tmtString);
+            
+            // Antisipasi format Google Sheets jika terbaca text objek "Date(YYYY,M,D)"
+            if (tmtString.includes("Date")) {
+                const parts = tmtString.match(/\d+/g);
+                if (parts && parts.length >= 3) {
+                    tmt = new Date(parts[0], parts[1], parts[2]);
+                }
+            }
+
+            if (isNaN(tmt.getTime())) return "- tahun - bulan";
+
+            const sekarang = new Date();
+            let tahun = sekarang.getFullYear() - tmt.getFullYear();
+            let bulan = sekarang.getMonth() - tmt.getMonth();
+
+            if (bulan < 0 || (bulan === 0 && sekarang.getDate() < tmt.getDate())) {
+                tahun--;
+                bulan += 12;
+            }
+
+            return `${tahun} tahun ${bulan} bulan`;
+        }
+
+        // Fungsi fetch data spreadsheet online (gviz endpoint) - VERSI DIPERBARUI
+        async function ambilDataDariSheet(namaSheet) {
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(namaSheet)}`;
+            const response = await fetch(url);
+            const text = await response.text();
+            
+            // Ekstrak JSON menggunakan indexOf agar tahan terhadap perubahan format spasi Google
+            const startIndex = text.indexOf('{');
+            const endIndex = text.lastIndexOf('}');
+            
+            if (startIndex === -1 || endIndex === -1) {
+                throw new Error("Gagal membaca respons server. Pastikan privasi Spreadsheet sudah diatur ke 'Siapa saja yang memiliki link'.");
+            }
+            
+            const jsonString = text.substring(startIndex, endIndex + 1);
+            return JSON.parse(jsonString).table;
+        }
+
+        async function cariDataCuti() {
+            const inputNip = document.getElementById('input-nip').value.trim();
+            const loadingStatus = document.getElementById('loading-status');
+            const errorStatus = document.getElementById('error-status');
+            
+            if (!inputNip) {
+                alert("NIP tidak boleh kosong!");
+                return;
+            }
+
+            loadingStatus.style.display = 'block';
+            errorStatus.style.display = 'none';
+
+            try {
+                // Ambil data dari kedua sheet secara paralel
+                const [dataPegawai, dataCuti] = await Promise.all([
+                    ambilDataDariSheet(SHEET_PEGAWAI),
+                    ambilDataDariSheet(SHEET_CUTI)
+                ]);
+
+                // 1. Cari Pegawai di Sheet Data_Pegawai (Kolom A: NIP, Kolom B: NAMA, Kolom D: TMT)
+                const barisPegawai = dataPegawai.rows.find(row => {
+                    return row.c[0] && String(row.c[0].v).trim() === inputNip;
+                });
+
+                if (!barisPegawai) {
+                    throw new Error("NIP Pegawai tidak terdaftar.");
+                }
+
+                const namaPegawai = barisPegawai.c[1] ? barisPegawai.c[1].v : "-";
+                const tmtPegawai = barisPegawai.c[3] ? (barisPegawai.c[3].f || barisPegawai.c[3].v) : "";
+
+                // 2. Cari Data Saldo Cuti di Sheet Data_Cuti (Kolom A: NIP, Kolom B: Saldo_Cuti, Kolom C: Tahun)
+                let saldoN = 0, saldoN1 = 0, saldoN2 = 0;
+
+                dataCuti.rows.forEach(row => {
+                    if (row.c[0] && String(row.c[0].v).trim() === inputNip) {
+                        const colSaldo = row.c[1] ? Number(row.c[1].v) : 0;
+                        const colTahun = row.c[2] ? Number(row.c[2].v) : 0;
+
+                        if (colTahun === tahunN) saldoN = colSaldo;
+                        if (colTahun === tahunN1) saldoN1 = colSaldo;
+                        if (colTahun === tahunN2) saldoN2 = colSaldo;
+                    }
+                });
+
+                // 3. Kalkulasi masa kerja otomatis via JavaScript
+                const teksMasaKerja = hitungMasaKerja(tmtPegawai);
+
+                // 4. Inject Data ke komponen Pop-Up HTML sesuai instruksi layout Anda
+                document.getElementById('pop-nama').innerText = `NAMA: ${namaPegawai.toUpperCase()}`;
+                document.getElementById('pop-nip').innerText = `NIP: ${inputNip}`;
+                
+                document.getElementById('tbl-nama').innerText = namaPegawai;
+                document.getElementById('tbl-nip').innerText = inputNip;
+                
+                document.getElementById('pop-masa-kerja').innerText = teksMasaKerja;
+
+                document.getElementById('val-n').innerText = saldoN + " Hari";
+                document.getElementById('val-n1').innerText = saldoN1 + " Hari";
+                document.getElementById('val-n2').innerText = saldoN2 + " Hari";
+
+                // Tampilkan Pop-Up Box
+                loadingStatus.style.display = 'none';
+                document.getElementById('modal-popup').style.display = 'flex';
+
+            } catch (error) {
+                console.error(error);
+                loadingStatus.style.display = 'none';
+                errorStatus.style.display = 'block';
+                // Tampilkan pesan error spesifik jika gagal membaca sheet
+                errorStatus.innerText = error.message.includes("Gagal membaca respons server") 
+                    ? error.message 
+                    : "NIP tidak ditemukan atau terjadi kesalahan jaringan.";
+            }
+        }
+
+        function tutupModal() {
+            document.getElementById('modal-popup').style.display = 'none';
+        }
+        //
+    </script>
+</body>
+</html>
